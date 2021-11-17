@@ -1,5 +1,9 @@
 #ISIS1225 - Librerias de soporte
 
+Juan Sebastian Nuñez Cortes, 202021672, j.nunezc@uniandes.edu.co
+
+Santiago Rodriguez Bernal, 202011182, s.rodriguez63@uniandes.edu.co
+
 Este proyecto contiene los Tipos abstractos de datos, estructuras de datos y algoritmos requeridos por el curso ISIS1225-Estructuras de Datos y Algoritmos
 
 -Lib
