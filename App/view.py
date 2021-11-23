@@ -23,7 +23,7 @@
 import config as cf
 import sys
 import controller
-from DISClib.ADT import list as lt
+import time
 assert cf
 
 
@@ -34,13 +34,30 @@ se hace la solicitud al controlador para ejecutar la
 operación solicitada
 """
 
-default_limit = 1000
-sys.setrecursionlimit(default_limit*10)
+sys.setrecursionlimit(2**20)
 
+
+# Funciones para la impresión de resultados
+
+def printCargaArchivos(analyzer, verticesDiGraph, routesDiGraph,
+                       verticesbwGraph, routesbwGraph):
+    """
+    Imprime los datos requeridos para la carga de archivos
+    """
+    print("-"*62)
+    print("Aeropuertos diGraph: " + str(verticesDiGraph))
+    print("Rutas aereas diGraph: " + str(routesDiGraph))
+    print("")
+    print("Aeropuertos bothWayGraph: " + str(verticesbwGraph))
+    print("Rutas aereas bothWayGraph: " + str(routesbwGraph))
+    print("-"*62)
+
+
+# Menu de opciones
 
 def printMenu():
     print("\n" + "-"*20 + " Bienvenido al Reto 4 " + "-"*20)
-    print("0 - Crear catalogo y cargar su información")
+    print("0 - Crear analizador y cargar su información")
     print("1 - Req 1. Encontrar puntos de interconexion aerea")
     print("2 - Req 2. Encontrar clusteres de trafico aereo")
     print("3 - Req 3. Encontrar la ruta mas corta entre ciudades")
@@ -52,16 +69,36 @@ def printMenu():
     print("-"*62)
 
 
-catalog = None
+# Menu principal
+
+analyzer = None
+airportsFile = "Skylines/airports_full.csv"
+routesFile = "Skylines/routes_full.csv"
+citiesFile = "Skylines/worldcities.csv"
 
 """
 Menu principal
 """
 while True:
     printMenu()
-    inputs = input('Seleccione una opción para continuar\n')
+    inputs = input("Seleccione una opción para continuar: ")
     if int(inputs[0]) == 0:
-        print("Cargando información de los archivos ....")
+        print("-"*62)
+        print("Inicializando, cargando información de los archivos ....")
+        start_time = time.process_time()
+        #
+        analyzer = controller.initAnalyzer()
+        controller.loadData(analyzer, airportsFile, routesFile, citiesFile)
+        verticesDiGraph = controller.totalVertices(analyzer["diGraph"])
+        routesDiGraph = controller.totalRoutes(analyzer["diGraph"])
+        verticesbwGraph = controller.totalVertices(analyzer["bothWayGraph"])
+        routesbwGraph = controller.totalRoutes(analyzer["bothWayGraph"])
+        #
+        stop_time = time.process_time()
+        elapsed_time_mseg = round((stop_time - start_time), 2)
+        print("Tiempo:", elapsed_time_mseg, "seg")
+        printCargaArchivos(analyzer, verticesDiGraph, routesDiGraph,
+                           verticesbwGraph, routesbwGraph)
 
     elif int(inputs[0]) == 1:
         pass
