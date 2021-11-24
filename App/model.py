@@ -29,6 +29,9 @@ import config as cf
 from DISClib.ADT.graph import gr
 from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
+from DISClib.ADT import list as lt
+from DISClib.ADT import orderedmap as om
+from math import radians, cos, sin, asin, sqrt
 assert cf
 
 """
@@ -50,12 +53,17 @@ def newAnalyzer():
 
     Adicionalmente se utilizan otras estructuras: Dos tablas de hash
     para guardar la informacion relevante de cada ciudad y aeropuerto.
+
+    Asimismo, se emplea un arbol RBT para la construccion del tercer grafo.
+    El arbol, junto a la funcion addCityAirport, se utiliza para encontrar los
+    aeropuertos mas cercanos a una ciudad en especificio.
     """
     analyzer = {"diGraph": None,
                 "bothWayGraph": None,
                 "citiesGraph": None,
                 "airports": None,
-                "cities": None}
+                "cities": None,
+                "rbtAuxiliar": None}
 
     analyzer["diGraph"] = gr.newGraph(datastructure='ADJ_LIST',
                                       directed=True,
@@ -68,7 +76,7 @@ def newAnalyzer():
                                            comparefunction=compareAirportsIds)
 
     analyzer["citiesGraph"] = gr.newGraph(datastructure='ADJ_LIST',
-                                          directed=True,
+                                          directed=False,
                                           size=10000,
                                           comparefunction=compareCitiesIds)
 
@@ -81,6 +89,9 @@ def newAnalyzer():
                                    maptype="PROBING",
                                    loadfactor=0.5,
                                    comparefunction=compareCities)
+
+    analyzer["rbtAuxiliar"] = om.newMap(omaptype="RBT",
+                                        comparefunction=compareLongitude)
 
     return analyzer
 
@@ -145,6 +156,69 @@ def addBothWayRoute(analyzer, route):
         addRoute(bothWayGraph, departure, destination, distance)
 
 
+def updateLongitudeIndex(analyzer, airport):
+    """
+    Revisa si existe o no la longitud en el arbol. En base a esto, crea una
+    nueva estructura para modelarla, o la adiciona a la lista de aeropuertos.
+    """
+    longitudeIndex = analyzer["rbtAuxiliar"]
+    longitude = round(float(airport["Longitude"]), 2)
+    entry = om.get(longitudeIndex, longitude)
+    if entry is None:
+        latitudentry = newLatitude()
+        om.put(longitudeIndex, longitude, latitudentry)
+    else:
+        latitudentry = me.getValue(entry)
+    updateLatitudeIndex(latitudentry["latitudeIndex"], airport)
+
+
+def updateLatitudeIndex(latitudeIndex, airport):
+    """
+    Revisa si existe o no la latitud en el arbol. En base a esto, crea una
+    nueva estructura para modelarla, o la adiciona a la lista de aeropuertos.
+    """
+    latitude = round(float(airport["Latitude"]), 2)
+    entry = om.get(latitudeIndex, latitude)
+    if entry is None:
+        latentry = newLatitudelist()
+        om.put(latitudeIndex, latitude, latentry)
+    else:
+        latentry = me.getValue(entry)
+    lt.addLast(latentry["ltLatitude"], airport)
+
+
+def addCityAirport(analyzer, city):
+    """
+    Genera un arco entre una ciudad y su aeropuerto mas cercano. Para ello,
+    calcula la distancia ciudad-aeropuerto de un rango delimitado por un arbol.
+    """
+    log1 = float(city["lng"])
+    lat1 = float(city["lat"])
+    log2 = log1 + 0.5
+    lat2 = lat1 + 0.5
+    mapLongitudes = analyzer["rbtAuxiliar"]
+    mapAeropuertos = analyzer["airports"]
+    ltTotal = adjAirports(mapLongitudes, log1-0.5, lat1-0.5, log2, lat2)
+    minimo = 1000000
+    aeropuertoMin = ""
+    for airport in lt.iterator(ltTotal):
+        iata = airport["IATA"]
+        dicAuxiliar = mp.get(mapAeropuertos, iata)
+        dicAirport = dicAuxiliar["value"]
+        log2 = float(dicAirport["Longitude"])
+        lat2 = float(dicAirport["Latitude"])
+        distance = haversine(log1, lat1, log2, lat2)
+        if distance < minimo:
+            minimo = distance
+            aeropuertoMin = iata
+    ciudad = city["city"]
+    grafoCiudades = analyzer["citiesGraph"]
+    if not gr.containsVertex(grafoCiudades, ciudad):
+        gr.insertVertex(grafoCiudades, ciudad)
+        addVertex(grafoCiudades, aeropuertoMin)
+        addRoute(grafoCiudades, ciudad, aeropuertoMin, minimo)
+
+
 def addVertex(graph, vertex):
     """
     Adiciona un aeropuerto o ciudad como un vertice del grafo.
@@ -163,6 +237,57 @@ def addRoute(graph, departure, destination, distance):
 
 
 # Funciones para creacion de datos
+
+def newLatitude():
+    """
+    Crea una nueva estructura para modelar los aeropuertos de una latitud.
+    """
+    latitudentry = {"latitudeIndex": None}
+    latitudentry["latitudeIndex"] = om.newMap(omaptype="RBT",
+                                              comparefunction=compareLatitude)
+    return latitudentry
+
+
+def newLatitudelist():
+    """
+    Crea una nueva estructura para modelar los aeropuertos de una latitud.
+    """
+    latentry = {"ltLatitude": None}
+    latentry["ltLatitude"] = lt.newList("ARRAY_LIST")
+    return latentry
+
+
+def adjAirports(mapLong, log1, lat1, log2, lat2):
+    """
+    Retorna los aeropuertos mas cercanos a una ciudad, delimitado por una
+    zona geografica. Si no encuentra, vuelve a llamar a la funcion con un
+    area de mayor tamaño.
+    """
+    ltLongitudes = om.values(mapLong, log1, log2)
+    ltTotal = lt.newList("ARRAY_LIST")
+    for mapLatitudes in lt.iterator(ltLongitudes):
+        ltLatitudes = om.values(mapLatitudes["latitudeIndex"], lat1, lat2)
+        for latitude in lt.iterator(ltLatitudes):
+            for airport in lt.iterator(latitude["ltLatitude"]):
+                lt.addLast(ltTotal, airport)
+    if lt.size(ltTotal) != 0:
+        return ltTotal
+    else:
+        return adjAirports(mapLong, log1-0.5, lat1-0.5, log2+0.5, lat2+0.5)
+
+
+def haversine(lon1, lat1, lon2, lat2):
+    """
+    Calcula la distancia en km entre dos latitudes y longitudes.
+    """
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a))
+    r = 6371
+    return c * r
+
 
 # Funciones de consulta
 
@@ -240,6 +365,30 @@ def compareCities(keyname, city):
     if (keyname == cityEntry):
         return 0
     elif (keyname > cityEntry):
+        return 1
+    else:
+        return -1
+
+
+def compareLongitude(log1, log2):
+    """
+    Compara dos coordenadas de longitud.
+    """
+    if (log1 == log2):
+        return 0
+    elif (log1 > log2):
+        return 1
+    else:
+        return -1
+
+
+def compareLatitude(lat1, lat2):
+    """
+    Compara dos coordenadas de latitud.
+    """
+    if (lat1 == lat2):
+        return 0
+    elif (lat1 > lat2):
         return 1
     else:
         return -1

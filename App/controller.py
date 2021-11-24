@@ -50,11 +50,13 @@ def loadData(analyzer, airportsFile, citiesFile, routesFile):
     input_file_A = csv.DictReader(open(fileA, encoding="utf-8"), delimiter=",")
     for airport in input_file_A:
         model.addAirport(analyzer, airport)
+        model.updateLongitudeIndex(analyzer, airport)
 
     fileC = cf.data_dir + citiesFile
     input_file_C = csv.DictReader(open(fileC, encoding="utf-8"), delimiter=",")
     for city in input_file_C:
         model.addCity(analyzer, city)
+        model.addCityAirport(analyzer, city)
 
     fileR = cf.data_dir + routesFile
     input_file_R = csv.DictReader(open(fileR, encoding="utf-8"), delimiter=",")

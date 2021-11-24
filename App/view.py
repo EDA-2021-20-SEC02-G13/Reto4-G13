@@ -40,7 +40,8 @@ sys.setrecursionlimit(2**20)
 # Funciones para la impresión de resultados
 
 def printCargaArchivos(analyzer, verticesDiGraph, routesDiGraph,
-                       verticesbwGraph, routesbwGraph, numCities):
+                       verticesbwGraph, routesbwGraph, verticesCityGraph,
+                       routesCityGraph, numCities):
     """
     Imprime los datos requeridos para la carga de archivos
     """
@@ -50,6 +51,9 @@ def printCargaArchivos(analyzer, verticesDiGraph, routesDiGraph,
     print("")
     print("Aeropuertos bothWayGraph: " + str(verticesbwGraph))
     print("Rutas aereas bothWayGraph: " + str(routesbwGraph))
+    print("")
+    print("Aeropuertos y ciudades en citiesGraph: " + str(verticesCityGraph))
+    print("Rutas aeropuerto-ciudad en citiesGraph: " + str(routesCityGraph))
     print("")
     print("Total de ciudades: " + str(numCities))
     print("-"*62)
@@ -96,13 +100,16 @@ while True:
         routesDiGraph = controller.totalRoutes(analyzer["diGraph"])
         verticesbwGraph = controller.totalVertices(analyzer["bothWayGraph"])
         routesbwGraph = controller.totalRoutes(analyzer["bothWayGraph"])
+        verticesCityGraph = controller.totalVertices(analyzer["citiesGraph"])
+        routesCityGraph = controller.totalRoutes(analyzer["citiesGraph"])
         numCities = controller.totalCities(analyzer["cities"])
         #
         stop_time = time.process_time()
         elapsed_time_mseg = round((stop_time - start_time), 2)
         print("Tiempo:", elapsed_time_mseg, "seg")
         printCargaArchivos(analyzer, verticesDiGraph, routesDiGraph,
-                           verticesbwGraph, routesbwGraph, numCities)
+                           verticesbwGraph, routesbwGraph, verticesCityGraph,
+                           routesCityGraph, numCities)
 
     elif int(inputs[0]) == 1:
         pass
