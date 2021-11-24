@@ -42,10 +42,20 @@ def initAnalyzer():
 
 # Funciones para la carga de datos
 
-def loadData(analyzer, airportsFile, routesFile, citiesFile):
+def loadData(analyzer, airportsFile, citiesFile, routesFile):
     """
     Carga los datos de los archivos CSV en el modelo.
     """
+    fileA = cf.data_dir + airportsFile
+    input_file_A = csv.DictReader(open(fileA, encoding="utf-8"), delimiter=",")
+    for airport in input_file_A:
+        model.addAirport(analyzer, airport)
+
+    fileC = cf.data_dir + citiesFile
+    input_file_C = csv.DictReader(open(fileC, encoding="utf-8"), delimiter=",")
+    for city in input_file_C:
+        model.addCity(analyzer, city)
+
     fileR = cf.data_dir + routesFile
     input_file_R = csv.DictReader(open(fileR, encoding="utf-8"), delimiter=",")
     for route in input_file_R:
@@ -59,13 +69,20 @@ def loadData(analyzer, airportsFile, routesFile, citiesFile):
 
 def totalVertices(graph):
     """
-    Obtiene el total de vertices de un grafo
+    Obtiene el total de vertices de un grafo.
     """
     return model.totalVertices(graph)
 
 
 def totalRoutes(graph):
     """
-    Obtiene el total de arcos de un grafo
+    Obtiene el total de arcos de un grafo.
     """
     return model.totalRoutes(graph)
+
+
+def totalCities(citiesIndex):
+    """
+    Obtiene el total de ciudades de la Tabla de Hash.
+    """
+    return model.totalCities(citiesIndex)

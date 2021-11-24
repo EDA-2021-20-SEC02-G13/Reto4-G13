@@ -27,6 +27,8 @@
 
 import config as cf
 from DISClib.ADT.graph import gr
+from DISClib.ADT import map as mp
+from DISClib.DataStructures import mapentry as me
 assert cf
 
 """
@@ -39,14 +41,21 @@ listas, una para los videos, otra para las categorias de los mismos.
 
 def newAnalyzer():
     """
-    Inicializa el analizador de vuelos. Se crean tres grafos:
+    Inicializa el analizador de vuelos.
+
+    Se crean tres grafos:
       - Un digrafo con todos los aeropuertos y rutas de vuelo.
       - Un grafo no dirigido con aquellos que comparten una ruta.
       - Un grafo que relaciona ciudades y aeropuertos.
+
+    Adicionalmente se utilizan otras estructuras: Dos tablas de hash
+    para guardar la informacion relevante de cada ciudad y aeropuerto.
     """
     analyzer = {"diGraph": None,
                 "bothWayGraph": None,
-                "citiesGraph": None}
+                "citiesGraph": None,
+                "airports": None,
+                "cities": None}
 
     analyzer["diGraph"] = gr.newGraph(datastructure='ADJ_LIST',
                                       directed=True,
@@ -63,10 +72,46 @@ def newAnalyzer():
                                           size=10000,
                                           comparefunction=compareCitiesIds)
 
+    analyzer["airports"] = mp.newMap(10710,
+                                     maptype="PROBING",
+                                     loadfactor=0.5,
+                                     comparefunction=compareAirports)
+
+    analyzer["cities"] = mp.newMap(41010,
+                                   maptype="PROBING",
+                                   loadfactor=0.5,
+                                   comparefunction=compareCities)
+
     return analyzer
 
 
 # Funciones para agregar informacion al analizador
+
+def addAirport(analyzer, airport):
+    """
+    Revisa si existe o no el aeropuerto en el mapa. En base a esto, lo
+    añade o no a la Tabla de Hash.
+    """
+    iata = airport["IATA"]
+    entry = mp.get(analyzer["airports"], iata)
+    if entry is None:
+        mp.put(analyzer["airports"], iata, airport)
+    else:
+        pass
+
+
+def addCity(analyzer, city):
+    """
+    Revisa si existe o no la ciudad en el mapa. En base a esto, la
+    añade o no a la Tabla de Hash.
+    """
+    nameCity = city["city"]
+    entry = mp.get(analyzer["cities"], nameCity)
+    if entry is None:
+        mp.put(analyzer["cities"], nameCity, city)
+    else:
+        pass
+
 
 def addOneWayRoute(analyzer, route):
     """
@@ -100,12 +145,12 @@ def addBothWayRoute(analyzer, route):
         addRoute(bothWayGraph, departure, destination, distance)
 
 
-def addVertex(graph, airport):
+def addVertex(graph, vertex):
     """
     Adiciona un aeropuerto o ciudad como un vertice del grafo.
     """
-    if not gr.containsVertex(graph, airport):
-        gr.insertVertex(graph, airport)
+    if not gr.containsVertex(graph, vertex):
+        gr.insertVertex(graph, vertex)
 
 
 def addRoute(graph, departure, destination, distance):
@@ -123,16 +168,23 @@ def addRoute(graph, departure, destination, distance):
 
 def totalVertices(graph):
     """
-    Obtiene el total de vertices de un grafo
+    Obtiene el total de vertices de un grafo.
     """
     return gr.numVertices(graph)
 
 
 def totalRoutes(graph):
     """
-    Obtiene el total de arcos de un grafo
+    Obtiene el total de arcos de un grafo.
     """
     return gr.numEdges(graph)
+
+
+def totalCities(citiesIndex):
+    """
+    Obtiene el total de ciudades de la Tabla de Hash.
+    """
+    return mp.size(citiesIndex)
 
 
 # Funciones de ordenamiento
@@ -141,7 +193,7 @@ def totalRoutes(graph):
 
 def compareAirportsIds(airport, keyairpot):
     """
-    Compara dos aeropuertos
+    Compara dos aeropuertos.
     """
     airportcode = keyairpot['key']
     if (airport == airportcode):
@@ -154,12 +206,40 @@ def compareAirportsIds(airport, keyairpot):
 
 def compareCitiesIds(cities, keycity):
     """
-    Compara dos ciudades
+    Compara dos ciudades.
     """
     citycode = keycity['key']
     if (cities == citycode):
         return 0
     elif (cities > citycode):
+        return 1
+    else:
+        return -1
+
+
+def compareAirports(keyname, airport):
+    """
+    Compara dos aeropuertos. El primero es una cadena de caracteres
+    y el segundo un entry de un map.
+    """
+    apEntry = me.getKey(airport)
+    if (keyname == apEntry):
+        return 0
+    elif (keyname > apEntry):
+        return 1
+    else:
+        return -1
+
+
+def compareCities(keyname, city):
+    """
+    Compara dos ciudades. La primera es una cadena de caracteres
+    y el segundo un entry de un map.
+    """
+    cityEntry = me.getKey(city)
+    if (keyname == cityEntry):
+        return 0
+    elif (keyname > cityEntry):
         return 1
     else:
         return -1

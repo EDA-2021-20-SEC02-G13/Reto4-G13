@@ -40,7 +40,7 @@ sys.setrecursionlimit(2**20)
 # Funciones para la impresión de resultados
 
 def printCargaArchivos(analyzer, verticesDiGraph, routesDiGraph,
-                       verticesbwGraph, routesbwGraph):
+                       verticesbwGraph, routesbwGraph, numCities):
     """
     Imprime los datos requeridos para la carga de archivos
     """
@@ -50,6 +50,8 @@ def printCargaArchivos(analyzer, verticesDiGraph, routesDiGraph,
     print("")
     print("Aeropuertos bothWayGraph: " + str(verticesbwGraph))
     print("Rutas aereas bothWayGraph: " + str(routesbwGraph))
+    print("")
+    print("Total de ciudades: " + str(numCities))
     print("-"*62)
 
 
@@ -73,8 +75,9 @@ def printMenu():
 
 analyzer = None
 airportsFile = "Skylines/airports_full.csv"
-routesFile = "Skylines/routes_full.csv"
 citiesFile = "Skylines/worldcities.csv"
+routesFile = "Skylines/routes_full.csv"
+
 
 """
 Menu principal
@@ -88,17 +91,18 @@ while True:
         start_time = time.process_time()
         #
         analyzer = controller.initAnalyzer()
-        controller.loadData(analyzer, airportsFile, routesFile, citiesFile)
+        controller.loadData(analyzer, airportsFile, citiesFile, routesFile)
         verticesDiGraph = controller.totalVertices(analyzer["diGraph"])
         routesDiGraph = controller.totalRoutes(analyzer["diGraph"])
         verticesbwGraph = controller.totalVertices(analyzer["bothWayGraph"])
         routesbwGraph = controller.totalRoutes(analyzer["bothWayGraph"])
+        numCities = controller.totalCities(analyzer["cities"])
         #
         stop_time = time.process_time()
         elapsed_time_mseg = round((stop_time - start_time), 2)
         print("Tiempo:", elapsed_time_mseg, "seg")
         printCargaArchivos(analyzer, verticesDiGraph, routesDiGraph,
-                           verticesbwGraph, routesbwGraph)
+                           verticesbwGraph, routesbwGraph, numCities)
 
     elif int(inputs[0]) == 1:
         pass
