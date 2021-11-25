@@ -77,7 +77,7 @@ def newAnalyzer():
 
     analyzer["citiesGraph"] = gr.newGraph(datastructure='ADJ_LIST',
                                           directed=False,
-                                          size=10000,
+                                          size=41010,
                                           comparefunction=compareCitiesIds)
 
     analyzer["airports"] = mp.newMap(10710,
@@ -199,7 +199,7 @@ def addCityAirport(analyzer, city):
     mapLongitudes = analyzer["rbtAuxiliar"]
     mapAeropuertos = analyzer["airports"]
     ltTotal = adjAirports(mapLongitudes, log1-0.5, lat1-0.5, log2, lat2)
-    minimo = 1000000
+    minimo = 10000000000
     aeropuertoMin = ""
     for airport in lt.iterator(ltTotal):
         iata = airport["IATA"]
@@ -305,6 +305,18 @@ def totalRoutes(graph):
     return gr.numEdges(graph)
 
 
+def firstAirport(graph, map):
+    """
+    Obtiene el primer aeropuerto en el grafo.
+    """
+    vertices = gr.vertices(graph)
+    iata = lt.getElement(vertices, 1)
+    entry = mp.get(map, iata)
+    ap = me.getValue(entry)
+    tp = ap["Name"], ap["City"], ap["Country"], ap["Latitude"], ap["Longitude"]
+    return tp
+
+
 def totalCities(citiesIndex):
     """
     Obtiene el total de ciudades de la Tabla de Hash.
@@ -312,7 +324,17 @@ def totalCities(citiesIndex):
     return mp.size(citiesIndex)
 
 
-# Funciones de ordenamiento
+def lastCity(map):
+    """
+    Obtiene la ultima ciudad en el mapa.
+    """
+    cities = mp.keySet(map)
+    cityName = lt.getElement(cities, lt.size(cities))
+    entry = mp.get(map, cityName)
+    city = me.getValue(entry)
+    tp = city["city"], city["population"], city["lat"], city["lng"]
+    return tp
+
 
 # Funciones de comparacion
 

@@ -39,23 +39,26 @@ sys.setrecursionlimit(2**20)
 
 # Funciones para la impresión de resultados
 
-def printCargaArchivos(analyzer, verticesDiGraph, routesDiGraph,
-                       verticesbwGraph, routesbwGraph, verticesCityGraph,
-                       routesCityGraph, numCities):
+def printCargaArchivos(verticesDiGraph, routesDiGraph, verticesbwGraph,
+                       routesbwGraph, verticesCityGraph, routesCityGraph,
+                       numCities, airportDiGraph, airportbwGraph, lastCity):
     """
     Imprime los datos requeridos para la carga de archivos
     """
     print("-"*62)
     print("Aeropuertos diGraph: " + str(verticesDiGraph))
     print("Rutas aereas diGraph: " + str(routesDiGraph))
+    print("1er Aeropuerto: " + str(airportDiGraph)[1:-1])
     print("")
     print("Aeropuertos bothWayGraph: " + str(verticesbwGraph))
     print("Rutas aereas bothWayGraph: " + str(routesbwGraph))
+    print("1er Aeropuerto: " + str(airportbwGraph)[1:-1])
     print("")
     print("Aeropuertos y ciudades en citiesGraph: " + str(verticesCityGraph))
     print("Rutas aeropuerto-ciudad en citiesGraph: " + str(routesCityGraph))
     print("")
     print("Total de ciudades: " + str(numCities))
+    print("Ultima ciudad: " + str(lastCity)[1:-1])
     print("-"*62)
 
 
@@ -98,18 +101,23 @@ while True:
         controller.loadData(analyzer, airportsFile, citiesFile, routesFile)
         verticesDiGraph = controller.totalVertices(analyzer["diGraph"])
         routesDiGraph = controller.totalRoutes(analyzer["diGraph"])
+        airportDiGraph = controller.firstAirport(analyzer["diGraph"],
+                                                 analyzer["airports"])
         verticesbwGraph = controller.totalVertices(analyzer["bothWayGraph"])
         routesbwGraph = controller.totalRoutes(analyzer["bothWayGraph"])
+        airportbwGraph = controller.firstAirport(analyzer["bothWayGraph"],
+                                                 analyzer["airports"])
         verticesCityGraph = controller.totalVertices(analyzer["citiesGraph"])
         routesCityGraph = controller.totalRoutes(analyzer["citiesGraph"])
         numCities = controller.totalCities(analyzer["cities"])
+        lastCity = controller.lastCity(analyzer["cities"])
         #
         stop_time = time.process_time()
         elapsed_time_mseg = round((stop_time - start_time), 2)
         print("Tiempo:", elapsed_time_mseg, "seg")
-        printCargaArchivos(analyzer, verticesDiGraph, routesDiGraph,
-                           verticesbwGraph, routesbwGraph, verticesCityGraph,
-                           routesCityGraph, numCities)
+        printCargaArchivos(verticesDiGraph, routesDiGraph, verticesbwGraph,
+                           routesbwGraph, verticesCityGraph, routesCityGraph,
+                           numCities, airportDiGraph, airportbwGraph, lastCity)
 
     elif int(inputs[0]) == 1:
         pass

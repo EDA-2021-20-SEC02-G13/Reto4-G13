@@ -65,8 +65,6 @@ def loadData(analyzer, airportsFile, citiesFile, routesFile):
         model.addBothWayRoute(analyzer, route)
 
 
-# Funciones de ordenamiento
-
 # Funciones de consulta sobre el catálogo
 
 def totalVertices(graph):
@@ -83,8 +81,22 @@ def totalRoutes(graph):
     return model.totalRoutes(graph)
 
 
+def firstAirport(graph, map):
+    """
+    Obtiene el primer aeropuerto en el grafo.
+    """
+    return model.firstAirport(graph, map)
+
+
 def totalCities(citiesIndex):
     """
     Obtiene el total de ciudades de la Tabla de Hash.
     """
     return model.totalCities(citiesIndex)
+
+
+def lastCity(map):
+    """
+    Obtiene la ultima ciudad en el mapa.
+    """
+    return model.lastCity(map)
