@@ -23,6 +23,8 @@
 import config as cf
 import sys
 import controller
+from prettytable import PrettyTable, ALL
+from DISClib.ADT import list as lt
 import time
 assert cf
 
@@ -126,7 +128,36 @@ while True:
         pass
 
     elif int(inputs[0]) == 3:
-        pass
+        print("\n" + "-"*23 + " Req 3. Inputs " + "-"*24)
+        ciudad = input("Indique el nombre de la ciudad a buscar: ")
+        start_time1 = time.process_time()
+        #
+        cities = controller.homonymous(analyzer["repeatedCities"], str(ciudad))
+        print("\n" + "Lista de ciudades hononimas:")
+        tbCity = PrettyTable(["#", "Ciudad", "Pais", "Subregion", "Latitud",
+                              "Longitud)", "id"])
+        num = 1
+        for city in lt.iterator(cities):
+            tbCity.add_row([str(num), city["city"], city["country"],
+                            city["admin_name"], city["lat"], city["lng"],
+                            city["id"]])
+            num += 1
+        tbCity.max_width = 40
+        tbCity.hrules = ALL
+        print(tbCity)
+        #
+        stop_time1 = time.process_time()
+        elapsed_time_mseg1 = round((stop_time1 - start_time1), 2)
+        numCiudad2 = input("\n" + "Seleccione de la lista de ciudades, el "
+                           "numero de aquella que desea buscar: ")
+        start_time2 = time.process_time()
+        #
+        ciudad2 = lt.getElement(cities, int(numCiudad2))
+        print(ciudad2)
+        #
+        stop_time2 = time.process_time()
+        elapsed_time_mseg2 = round((stop_time2 - start_time2), 2)
+        print("Tiempo:", elapsed_time_mseg1 + elapsed_time_mseg2, "seg")
 
     elif int(inputs[0]) == 4:
         pass

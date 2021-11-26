@@ -56,6 +56,7 @@ def loadData(analyzer, airportsFile, citiesFile, routesFile):
     input_file_C = csv.DictReader(open(fileC, encoding="utf-8"), delimiter=",")
     for city in input_file_C:
         model.addCity(analyzer, city)
+        model.addCities(analyzer, city)
         model.addCityAirport(analyzer, city)
 
     fileR = cf.data_dir + routesFile
@@ -100,3 +101,10 @@ def lastCity(map):
     Obtiene la ultima ciudad en el mapa.
     """
     return model.lastCity(map)
+
+
+def homonymous(repeatedCities, city):
+    """
+    Retorna una lista de ciudades con el mismo nombre.
+    """
+    return model.homonymous(repeatedCities, city)

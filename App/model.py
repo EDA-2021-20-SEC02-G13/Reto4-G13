@@ -51,7 +51,7 @@ def newAnalyzer():
       - Un grafo no dirigido con aquellos que comparten una ruta.
       - Un grafo que relaciona ciudades y aeropuertos.
 
-    Adicionalmente se utilizan otras estructuras: Dos tablas de hash
+    Adicionalmente se utilizan otras estructuras: Tres tablas de hash
     para guardar la informacion relevante de cada ciudad y aeropuerto.
 
     Asimismo, se emplea un arbol RBT para la construccion del tercer grafo.
@@ -63,6 +63,7 @@ def newAnalyzer():
                 "citiesGraph": None,
                 "airports": None,
                 "cities": None,
+                "repeatedCities": None,
                 "rbtAuxiliar": None}
 
     analyzer["diGraph"] = gr.newGraph(datastructure='ADJ_LIST',
@@ -80,7 +81,7 @@ def newAnalyzer():
                                           size=41010,
                                           comparefunction=compareCitiesIds)
 
-    analyzer["airports"] = mp.newMap(10710,
+    analyzer["airports"] = mp.newMap(9100,
                                      maptype="PROBING",
                                      loadfactor=0.5,
                                      comparefunction=compareAirports)
@@ -89,6 +90,11 @@ def newAnalyzer():
                                    maptype="PROBING",
                                    loadfactor=0.5,
                                    comparefunction=compareCities)
+
+    analyzer["repeatedCities"] = mp.newMap(38000,
+                                           maptype="PROBING",
+                                           loadfactor=0.5,
+                                           comparefunction=compareCities)
 
     analyzer["rbtAuxiliar"] = om.newMap(omaptype="RBT",
                                         comparefunction=compareLongitude)
@@ -116,12 +122,27 @@ def addCity(analyzer, city):
     Revisa si existe o no la ciudad en el mapa. En base a esto, la
     añade o no a la Tabla de Hash.
     """
-    nameCity = city["city"]
-    entry = mp.get(analyzer["cities"], nameCity)
+    idCity = city["id"]
+    entry = mp.get(analyzer["cities"], idCity)
     if entry is None:
-        mp.put(analyzer["cities"], nameCity, city)
+        mp.put(analyzer["cities"], idCity, city)
     else:
         pass
+
+
+def addCities(analyzer, city):
+    """
+    Revisa si existe o no la ciudad en el mapa. En base a esto, la
+    añade o no a la Tabla de Hash, y a una lista de ciudades repetidas.
+    """
+    ciudad = city["city"]
+    entry = mp.get(analyzer["repeatedCities"], ciudad)
+    if entry is None:
+        cityEntry = lt.newList("ARRAY_LIST")
+        mp.put(analyzer["repeatedCities"], ciudad, cityEntry)
+    else:
+        cityEntry = me.getValue(entry)
+    lt.addLast(cityEntry, city)
 
 
 def addOneWayRoute(analyzer, route):
@@ -211,12 +232,11 @@ def addCityAirport(analyzer, city):
         if distance < minimo:
             minimo = distance
             aeropuertoMin = iata
-    ciudad = city["city"]
+    ciudad = city["id"]
     grafoCiudades = analyzer["citiesGraph"]
-    if not gr.containsVertex(grafoCiudades, ciudad):
-        gr.insertVertex(grafoCiudades, ciudad)
-        addVertex(grafoCiudades, aeropuertoMin)
-        addRoute(grafoCiudades, ciudad, aeropuertoMin, minimo)
+    addVertex(grafoCiudades, ciudad)
+    addVertex(grafoCiudades, aeropuertoMin)
+    addRoute(grafoCiudades, ciudad, aeropuertoMin, minimo)
 
 
 def addVertex(graph, vertex):
@@ -329,11 +349,20 @@ def lastCity(map):
     Obtiene la ultima ciudad en el mapa.
     """
     cities = mp.keySet(map)
-    cityName = lt.getElement(cities, lt.size(cities))
-    entry = mp.get(map, cityName)
+    idCity = lt.getElement(cities, lt.size(cities))
+    entry = mp.get(map, idCity)
     city = me.getValue(entry)
     tp = city["city"], city["population"], city["lat"], city["lng"]
     return tp
+
+
+def homonymous(repeatedCities, city):
+    """
+    Retorna una lista de ciudades con el mismo nombre.
+    """
+    entry = mp.get(repeatedCities, city)
+    ciudades = me.getValue(entry)
+    return ciudades
 
 
 # Funciones de comparacion
