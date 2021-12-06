@@ -27,6 +27,7 @@
 
 import config as cf
 from DISClib.Algorithms.Graphs import scc as scc
+from DISClib.Algorithms.Graphs import dijsktra as djk
 from DISClib.ADT.graph import gr
 from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
@@ -118,6 +119,17 @@ def addAirport(analyzer, airport):
         pass
 
 
+def addAirportGraph(analyzer, airport):
+    """
+    Agrega el aeropuerto a los grafos requeridos.
+    """
+    diGraph = analyzer["diGraph"]
+    bothWayGraph = analyzer["bothWayGraph"]
+    iata = airport["IATA"]
+    addVertex(diGraph, iata)
+    addVertex(bothWayGraph, iata)
+
+
 def addCity(analyzer, city):
     """
     Revisa si existe o no la ciudad en el mapa. En base a esto, la
@@ -153,10 +165,8 @@ def addOneWayRoute(analyzer, route):
     """
     departure = route["Departure"]
     destination = route["Destination"]
-    distance = route["distance_km"]
+    distance = float(route["distance_km"])
     diGraph = analyzer["diGraph"]
-    addVertex(diGraph, departure)
-    addVertex(diGraph, destination)
     addRoute(diGraph, departure, destination, distance)
 
 
@@ -167,14 +177,12 @@ def addBothWayRoute(analyzer, route):
     """
     departure = route["Departure"]
     destination = route["Destination"]
-    distance = route["distance_km"]
+    distance = float(route["distance_km"])
     diGraph = analyzer["diGraph"]
     bothWayGraph = analyzer["bothWayGraph"]
     edge1 = gr.getEdge(diGraph, departure, destination)
     edge2 = gr.getEdge(diGraph, destination, departure)
     if edge1 is not None and edge2 is not None:
-        addVertex(bothWayGraph, departure)
-        addVertex(bothWayGraph, destination)
         addRoute(bothWayGraph, departure, destination, distance)
 
 
@@ -325,12 +333,6 @@ def totalRoutes(graph):
     """
     return gr.numEdges(graph)
 
-def findccf(analyzer,aeropuerto1,aeropuerto2):
-    scccluster = scc.KosarajuSCC(analyzer["diGraph"])
-    #relacion = scc.stronglyConnected(scccluster,aeropuerto1,aeropuerto2)
-    conectados = scccluster['components']
-    return conectados
-
 
 def firstAirport(graph, map):
     """
@@ -363,6 +365,16 @@ def lastCity(map):
     return tp
 
 
+def findSCC(analyzer, aeropuerto1, aeropuerto2):
+    """
+    Encuentra los componentes fuertemente conectados de un grafo.
+    """
+    scccluster = scc.KosarajuSCC(analyzer["diGraph"])
+    relacion = scc.stronglyConnected(scccluster, aeropuerto1, aeropuerto2)
+    conectados = scccluster['components']
+    return conectados, relacion
+
+
 def homonymous(repeatedCities, city):
     """
     Retorna una lista de ciudades con el mismo nombre.
@@ -370,6 +382,35 @@ def homonymous(repeatedCities, city):
     entry = mp.get(repeatedCities, city)
     ciudades = me.getValue(entry)
     return ciudades
+
+
+def dijkstraCity(analyzer, ciudad1, ciudad2):
+    """
+    Encuentra la ruta minima en distancia para viajar entre dos ciudades, por
+    medio del algoritmo de Dijkstra.
+    """
+    citiesGraph = analyzer["citiesGraph"]
+    adjacents1 = gr.adjacents(citiesGraph, ciudad1)
+    adjacents2 = gr.adjacents(citiesGraph, ciudad2)
+    airport1 = lt.getElement(adjacents1, 1)
+    airport2 = lt.getElement(adjacents2, 1)
+    search = djk.Dijkstra(analyzer["diGraph"], airport1)
+    path = djk.pathTo(search, airport2)
+    distance = 0
+    d1 = gr.getEdge(citiesGraph, ciudad1, airport1)
+    d2 = gr.getEdge(citiesGraph, ciudad2, airport2)
+    distance += d1["weight"]
+    distance += d2["weight"]
+    return path, airport1, airport2, distance
+
+
+def getAirportInfo(analyzer, iata):
+    """
+    Obtiene la informacion del aeropuerto.
+    """
+    airports = analyzer["airports"]
+    entry = mp.get(airports, iata)
+    return me.getValue(entry)
 
 
 # Funciones de comparacion

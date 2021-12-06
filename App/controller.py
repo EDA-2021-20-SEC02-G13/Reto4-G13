@@ -51,6 +51,7 @@ def loadData(analyzer, airportsFile, citiesFile, routesFile):
     for airport in input_file_A:
         model.addAirport(analyzer, airport)
         model.updateLongitudeIndex(analyzer, airport)
+        model.addAirportGraph(analyzer, airport)
 
     fileC = cf.data_dir + citiesFile
     input_file_C = csv.DictReader(open(fileC, encoding="utf-8"), delimiter=",")
@@ -88,9 +89,6 @@ def firstAirport(graph, map):
     """
     return model.firstAirport(graph, map)
 
-def findccf(analyzer,aeropuerto1,aeropuerto2):
-
-    return model.findccf(analyzer,aeropuerto1,aeropuerto2)
 
 def totalCities(citiesIndex):
     """
@@ -106,8 +104,30 @@ def lastCity(map):
     return model.lastCity(map)
 
 
+def findSCC(analyzer, aeropuerto1, aeropuerto2):
+    """
+    Encuentra los componentes fuertemente conectados de un grafo.
+    """
+    return model.findSCC(analyzer, aeropuerto1, aeropuerto2)
+
+
 def homonymous(repeatedCities, city):
     """
     Retorna una lista de ciudades con el mismo nombre.
     """
     return model.homonymous(repeatedCities, city)
+
+
+def dijkstraCity(analyzer, ciudad1, ciudad2):
+    """
+    Encuentra la ruta minima en distancia para viajar entre dos ciudades, por
+    medio del algoritmo de Dijkstra.
+    """
+    return model.dijkstraCity(analyzer, ciudad1, ciudad2)
+
+
+def getAirportInfo(analyzer, iata):
+    """
+    Obtiene la informacion del aeropuerto.
+    """
+    return model.getAirportInfo(analyzer, iata)

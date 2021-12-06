@@ -24,6 +24,7 @@ import config as cf
 import sys
 import controller
 from prettytable import PrettyTable, ALL
+from DISClib.ADT import stack
 from DISClib.ADT import list as lt
 import time
 assert cf
@@ -64,6 +65,56 @@ def printCargaArchivos(verticesDiGraph, routesDiGraph, verticesbwGraph,
     print("-"*62)
 
 
+def printDijkstraCity(analyzer, path, airport1, airport2, city1, city2,
+                      distance):
+    """
+    Imprime los datos requeridos para el requerimiento 3.
+    """
+    a1 = controller.getAirportInfo(analyzer, airport1)
+    a2 = controller.getAirportInfo(analyzer, airport2)
+    tbAir1 = PrettyTable(["IATA", "Name", "City", "Country"])
+    tbAir1.add_row([a1["IATA"], a1["Name"], a1["City"], a1["Country"]])
+    tbAir1.max_width = 40
+    tbAir1.hrules = ALL
+    tbAir2 = PrettyTable(["IATA", "Name", "City", "Country"])
+    tbAir2.add_row([a2["IATA"], a2["Name"], a2["City"], a2["Country"]])
+    tbAir2.max_width = 40
+    tbAir2.hrules = ALL
+    tbDistance = PrettyTable(["Departure", "Destination", "distance_km"])
+    tbStops = PrettyTable(["IATA", "Name", "City", "Country"])
+    dictAuxiliar = {}
+    if path is not None:
+        while (not stack.isEmpty(path)):
+            stop = stack.pop(path)
+            distance += stop["weight"]
+            tbDistance.add_row([stop["vertexA"], stop["vertexB"],
+                                stop["weight"]])
+            dictAuxiliar[stop["vertexA"]] = 1
+            dictAuxiliar[stop["vertexB"]] = 1
+    else:
+        print('No hay camino')
+    for key in dictAuxiliar.keys():
+        air1 = controller.getAirportInfo(analyzer, key)
+        tbStops.add_row([air1["IATA"], air1["Name"], air1["City"],
+                         air1["Country"]])
+    tbDistance.max_width = 40
+    tbDistance.hrules = ALL
+    tbStops.max_width = 40
+    tbStops.hrules = ALL
+    print("\n" + "-"*23 + " Req 3. Answer " + "-"*24)
+    print("+++ The departure airport in", str(city1), "is +++")
+    print(tbAir1)
+    print("")
+    print("+++ The departure airport in", str(city2), "is +++")
+    print(tbAir2)
+    print("\n" + "+++ Dijkstra's Trip Details +++")
+    print("- Total distance:", str(round(distance, 3)), "(km)")
+    print("- Trip Path:")
+    print(tbDistance)
+    print("- Trip Stops:")
+    print(tbStops)
+
+
 # Menu de opciones
 
 def printMenu():
@@ -94,6 +145,7 @@ Menu principal
 while True:
     printMenu()
     inputs = input("Seleccione una opción para continuar: ")
+
     if int(inputs[0]) == 0:
         print("-"*62)
         print("Inicializando, cargando información de los archivos ....")
@@ -125,22 +177,20 @@ while True:
         pass
 
     elif int(inputs[0]) == 2:
-         print("\n" + "-"*23 + " Req 2. Inputs " + "-"*24)
-         aeropuerto1 = input('Indique el aeropuerto que desea : ')
-         aeropuerto2 = input('Indique el aeropuerto que desea : ')
-         xd = controller.findccf(analyzer,aeropuerto1,aeropuerto2)
-         componentes = xd
-         print(componentes)
-
-        
+        print("\n" + "-"*23 + " Req 2. Inputs " + "-"*24)
+        aeropuerto1 = input('Indique el aeropuerto que desea : ')
+        aeropuerto2 = input('Indique el aeropuerto que desea : ')
+        scc = controller.findSCC(analyzer, aeropuerto1, aeropuerto2)
+        print(scc[0], scc[1])
 
     elif int(inputs[0]) == 3:
         print("\n" + "-"*23 + " Req 3. Inputs " + "-"*24)
-        ciudad = input("Indique el nombre de la ciudad a buscar: ")
+        city1 = input("Indique el nombre de la primera ciudad a buscar: ")
+        city2 = input("Indique el nombre de la segunda ciudad a buscar: ")
         start_time1 = time.process_time()
         #
-        cities = controller.homonymous(analyzer["repeatedCities"], str(ciudad))
-        print("\n" + "Lista de ciudades hononimas:")
+        cities = controller.homonymous(analyzer["repeatedCities"], str(city1))
+        print("\n" + "Listado de ciudades hononimas de la primera ciudad:")
         tbCity = PrettyTable(["#", "Ciudad", "Pais", "Subregion", "Latitud",
                               "Longitud)", "id"])
         num = 1
@@ -153,18 +203,42 @@ while True:
         tbCity.hrules = ALL
         print(tbCity)
         #
+        cities2 = controller.homonymous(analyzer["repeatedCities"], str(city2))
+        print("\n" + "Listado de ciudades hononimas de la segunda ciudad:")
+        tbCity2 = PrettyTable(["#", "Ciudad", "Pais", "Subregion", "Latitud",
+                              "Longitud)", "id"])
+        num = 1
+        for city in lt.iterator(cities2):
+            tbCity2.add_row([str(num), city["city"], city["country"],
+                            city["admin_name"], city["lat"], city["lng"],
+                            city["id"]])
+            num += 1
+        tbCity2.max_width = 40
+        tbCity2.hrules = ALL
+        print(tbCity2)
+        #
         stop_time1 = time.process_time()
         elapsed_time_mseg1 = round((stop_time1 - start_time1), 2)
-        numCiudad2 = input("\n" + "Seleccione de la lista de ciudades, el "
-                           "numero de aquella que desea buscar: ")
+        numCiudad1 = input("\n" + "Seleccione de la lista de ciudades, el "
+                           "numero de la primera que desea buscar: ")
+        numCiudad2 = input("Seleccione de la lista de ciudades, el "
+                           "numero de la segunda que desea buscar: ")
         start_time2 = time.process_time()
         #
-        ciudad2 = lt.getElement(cities, int(numCiudad2))
-        print(ciudad2)
+        ciudad1 = lt.getElement(cities, int(numCiudad1))
+        ciudad2 = lt.getElement(cities2, int(numCiudad2))
+        tpl = controller.dijkstraCity(analyzer, ciudad1["id"], ciudad2["id"])
+        path = tpl[0]
+        airport1 = tpl[1]
+        airport2 = tpl[2]
+        distance = tpl[3]
         #
         stop_time2 = time.process_time()
         elapsed_time_mseg2 = round((stop_time2 - start_time2), 2)
+        print("")
         print("Tiempo:", elapsed_time_mseg1 + elapsed_time_mseg2, "seg")
+        printDijkstraCity(analyzer, path, airport1, airport2, city1, city2,
+                          distance)
 
     elif int(inputs[0]) == 4:
         pass
