@@ -83,9 +83,9 @@ def printMenu():
 # Menu principal
 
 analyzer = None
-airportsFile = "Skylines/airports_full.csv"
-citiesFile = "Skylines/worldcities.csv"
-routesFile = "Skylines/routes_full.csv"
+airportsFile = "Skylines/airports-utf8-small.csv"
+citiesFile = "Skylines/worldcities-utf8.csv"
+routesFile = "Skylines/routes-utf8-small.csv"
 
 
 """
@@ -125,7 +125,14 @@ while True:
         pass
 
     elif int(inputs[0]) == 2:
-        pass
+         print("\n" + "-"*23 + " Req 2. Inputs " + "-"*24)
+         aeropuerto1 = input('Indique el aeropuerto que desea : ')
+         aeropuerto2 = input('Indique el aeropuerto que desea : ')
+         xd = controller.findccf(analyzer,aeropuerto1,aeropuerto2)
+         componentes = xd
+         print(componentes)
+
+        
 
     elif int(inputs[0]) == 3:
         print("\n" + "-"*23 + " Req 3. Inputs " + "-"*24)

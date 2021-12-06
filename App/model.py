@@ -26,6 +26,7 @@
 
 
 import config as cf
+from DISClib.Algorithms.Graphs import scc as scc
 from DISClib.ADT.graph import gr
 from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
@@ -323,6 +324,12 @@ def totalRoutes(graph):
     Obtiene el total de arcos de un grafo.
     """
     return gr.numEdges(graph)
+
+def findccf(analyzer,aeropuerto1,aeropuerto2):
+    scccluster = scc.KosarajuSCC(analyzer["diGraph"])
+    #relacion = scc.stronglyConnected(scccluster,aeropuerto1,aeropuerto2)
+    conectados = scccluster['components']
+    return conectados
 
 
 def firstAirport(graph, map):

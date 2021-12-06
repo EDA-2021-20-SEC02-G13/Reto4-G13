@@ -88,6 +88,9 @@ def firstAirport(graph, map):
     """
     return model.firstAirport(graph, map)
 
+def findccf(analyzer,aeropuerto1,aeropuerto2):
+
+    return model.findccf(analyzer,aeropuerto1,aeropuerto2)
 
 def totalCities(citiesIndex):
     """
