@@ -241,7 +241,39 @@ while True:
                           distance)
 
     elif int(inputs[0]) == 4:
-        pass
+        print("\n" + "-"*23 + " Req 4. Inputs " + "-"*24)
+        millas = input("Indique la cantidad de millas del viajero: ")
+        p1 = input("Indique el nombre de la ciudad de partida: ")
+        start_time1 = time.process_time()
+        #
+        citiesM = controller.homonymous(analyzer["repeatedCities"], str(p1))
+        print("\n" + "Listado de ciudades hononimas de la primera ciudad:")
+        tbCityM = PrettyTable(["#", "Ciudad", "Pais", "Subregion", "Latitud",
+                              "Longitud)", "id"])
+        num = 1
+        for city in lt.iterator(citiesM):
+            tbCityM.add_row([str(num), city["city"], city["country"],
+                            city["admin_name"], city["lat"], city["lng"],
+                            city["id"]])
+            num += 1
+        tbCityM.max_width = 40
+        tbCityM.hrules = ALL
+        print(tbCityM)
+        #
+        stop_time1 = time.process_time()
+        elapsed_time_mseg1 = round((stop_time1 - start_time1), 2)
+        numCiudad1M = input("\n" + "Seleccione de la lista de ciudades, el "
+                            "numero de la que desea partir: ")
+        start_time2 = time.process_time()
+        #
+        ciudad1M = lt.getElement(citiesM, int(numCiudad1M))
+        controller.travelerMST(analyzer, ciudad1M["id"], millas)
+
+        #
+        stop_time2 = time.process_time()
+        elapsed_time_mseg2 = round((stop_time2 - start_time2), 2)
+        print("")
+        print("Tiempo:", elapsed_time_mseg1 + elapsed_time_mseg2, "seg")
 
     elif int(inputs[0]) == 5:
         pass

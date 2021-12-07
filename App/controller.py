@@ -131,3 +131,11 @@ def getAirportInfo(analyzer, iata):
     Obtiene la informacion del aeropuerto.
     """
     return model.getAirportInfo(analyzer, iata)
+
+
+def travelerMST(analyzer, ciudad1M, millas):
+    """
+    Identifica el arbol de expansion minima para poder cubrir la mayor
+    cantidad de ciudades posibles en un unico viaje.
+    """
+    return model.travelerMST(analyzer, ciudad1M, millas)

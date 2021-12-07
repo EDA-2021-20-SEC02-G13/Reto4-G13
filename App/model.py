@@ -28,6 +28,8 @@
 import config as cf
 from DISClib.Algorithms.Graphs import scc as scc
 from DISClib.Algorithms.Graphs import dijsktra as djk
+from DISClib.ADT import stack
+from DISClib.Algorithms.Graphs import prim as prim
 from DISClib.ADT.graph import gr
 from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
@@ -411,6 +413,43 @@ def getAirportInfo(analyzer, iata):
     airports = analyzer["airports"]
     entry = mp.get(airports, iata)
     return me.getValue(entry)
+
+
+def travelerMST(analyzer, ciudad1M, millas):
+    """
+    Identifica el arbol de expansion minima para poder cubrir la mayor
+    cantidad de ciudades posibles en un unico viaje.
+    """
+    citiesGraph = analyzer["citiesGraph"]
+    bothWayGraph = analyzer["bothWayGraph"]
+    adjacents = gr.adjacents(citiesGraph, ciudad1M)
+    airport = lt.getElement(adjacents, 1)
+    search = prim.PrimMST(bothWayGraph)
+    total = prim.weightMST(bothWayGraph, search)
+    mst = search["mst"]
+    edgeTo = search["edgeTo"]
+    entry = mp.get(edgeTo, airport)
+    edge1 = me.getValue(entry)
+    ltA = lt.newList("SINGLE_LINKED")
+    lt.addLast(ltA, edge1)
+    i = 0
+    while i < mp.size(edgeTo):
+        vertexA = edge1["vertexA"]
+        entry = mp.get(edgeTo, vertexA)
+        if entry is None:
+            break
+        else:
+            edge1 = me.getValue(entry)
+            lt.addFirst(ltA, edge1)
+        i += 1
+
+    print(ltA)
+    print(total)
+
+    if mst is not None:
+        while (not stack.isEmpty(mst)):
+            stop = stack.pop(mst)
+            print(stop)
 
 
 # Funciones de comparacion
