@@ -104,6 +104,13 @@ def lastCity(map):
     return model.lastCity(map)
 
 
+def interconnection(analyzer):
+    """
+    Encuentra los aeropuertos que sirven como punto de interconexion.
+    """
+    return model.interconnection(analyzer)
+
+
 def findSCC(analyzer, aeropuerto1, aeropuerto2):
     """
     Encuentra los componentes fuertemente conectados de un grafo.
@@ -140,11 +147,18 @@ def travelerMST(analyzer, ciudad1M, millas):
     """
     return model.travelerMST(analyzer, ciudad1M, millas)
 
-def dijkstraAirport(analyzer, airport1, airport2, distance1, distance2):
 
-    return model.dijkstraAirport(analyzer, airport1, airport2, distance1, distance2)
+def dijkstraAirport(analyzer, airport1, airport2, d1, d2):
+    return model.dijkstraAirport(analyzer, airport1, airport2, d1, d2)
 
 
-def nearairportapi(lat1,lng1,lat2,lng2):
+def affectedAirports(analyzer, airport):
+    """
+    Identifica cuales serian los aeropuertos que afectados si uno sale
+    del funcionamiento.
+    """
+    return model.affectedAirports(analyzer, airport)
 
-    return model.nearairportapi(lat1,lng1,lat2,lng2)
+
+def nearairportapi(lat1, lng1, lat2, lng2):
+    return model.nearairportapi(lat1, lng1, lat2, lng2)

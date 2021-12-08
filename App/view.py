@@ -65,6 +65,55 @@ def printCargaArchivos(verticesDiGraph, routesDiGraph, verticesbwGraph,
     print("-"*62)
 
 
+def printInterconnections(interconnections):
+    """
+    Imprime los datos requeridos para el requerimiento 1.
+    """
+    tbCon = PrettyTable(["Name", "City", "Country", "IATA", "connections",
+                         "inbound", "outbound"])
+    total = lt.size(interconnections)
+    if total != 0:
+        u = 1
+        for pos in range(1, 6):
+            ap = lt.getElement(interconnections, pos)
+            tbCon.add_row([ap["Name"], ap["City"], ap["Country"], ap["IATA"],
+                          ap["connections"], ap["inbound"], ap["outbound"]])
+            u += 1
+            if u > total:
+                break
+    tbCon.max_width = 40
+    tbCon.hrules = ALL
+    print("\n" + "-"*23 + " Req 1. Answer " + "-"*24)
+    print("Connected airports inside network:", str(total))
+    print("TOP 5 most connected airports...")
+    print(tbCon)
+
+
+def printSCC(analyzer, aeropuerto1, aeropuerto2, conectados, relacion):
+    """
+    Imprime los datos requeridos para el requerimiento 2.
+    """
+    a1 = controller.getAirportInfo(analyzer, aeropuerto1)
+    a2 = controller.getAirportInfo(analyzer, aeropuerto2)
+    tbA1 = PrettyTable(["IATA", "Name", "City", "Country"])
+    tbA1.add_row([a1["IATA"], a1["Name"], a1["City"], a1["Country"]])
+    tbA1.max_width = 40
+    tbA1.hrules = ALL
+    tbA2 = PrettyTable(["IATA", "Name", "City", "Country"])
+    tbA2.add_row([a2["IATA"], a2["Name"], a2["City"], a2["Country"]])
+    tbA2.max_width = 40
+    tbA2.hrules = ALL
+    print("\n" + "-"*23 + " Req 2. Answer " + "-"*24)
+    print("+++ Airport1 IATA Code:", str(aeropuerto1), "+++")
+    print(tbA1)
+    print("+++ Airport2 IATA Code:", str(aeropuerto2), "+++")
+    print(tbA2)
+    print("")
+    print("- Number of SCC in Airport-Route Network:", str(conectados))
+    print("- Does the", a1["Name"], "and the", a2["Name"], "belong together?")
+    print("- ANS:", str(relacion))
+
+
 def printDijkstraCity(analyzer, path, airport1, airport2, city1, city2,
                       distance):
     """
@@ -114,8 +163,67 @@ def printDijkstraCity(analyzer, path, airport1, airport2, city1, city2,
     print("- Trip Stops:")
     print(tbStops)
 
-def printDijkstraAirport(analyzer, path, airport1, airport2, 
-                      distance):
+
+def printAffectedAirports(airportsTpl, edgesTpl, adjacents2, iata, analyzer):
+    """
+    Imprime los datos requeridos para el requerimiento 5.
+    """
+    air1Before, air1After, air2Before, air2After = airportsTpl
+    edge1Before, edge1After, edge2Before, edge2After = edgesTpl
+    tbAir = PrettyTable(["IATA", "Name", "City", "Country"])
+    total = lt.size(adjacents2)
+    if total != 0:
+        u = 1
+        for pos in range(1, 4):
+            airport = lt.getElement(adjacents2, pos)
+            ap = controller.getAirportInfo(analyzer, airport)
+            tbAir.add_row([ap["IATA"], ap["Name"], ap["City"], ap["Country"]])
+            u += 1
+            if u > total:
+                break
+    if total == 4:
+        airport = lt.getElement(adjacents2, total)
+        ap = controller.getAirportInfo(analyzer, airport)
+        tbAir.add_row([ap["IATA"], ap["Name"], ap["City"], ap["Country"]])
+    elif total == 5:
+        for pos in range(total-1, total+1):
+            airport = lt.getElement(adjacents2, pos)
+            ap = controller.getAirportInfo(analyzer, airport)
+            tbAir.add_row([ap["IATA"], ap["Name"], ap["City"], ap["Country"]])
+    elif total > 5:
+        for pos in range(total-2, total+1):
+            airport = lt.getElement(adjacents2, pos)
+            ap = controller.getAirportInfo(analyzer, airport)
+            tbAir.add_row([ap["IATA"], ap["Name"], ap["City"], ap["Country"]])
+    tbAir.max_width = 40
+    tbAir.hrules = ALL
+    print("\n" + "-"*23 + " Req 5. Answer " + "-"*24)
+    print("Closing the airport with IATA code:", str(iata))
+    print("")
+    print("--- Airports-Routes DiGraph ---")
+    print("Original number of Airports:", str(air2Before), "and Routes:",
+          str(edge2Before))
+    print("--- Airports-Routes bothWayGraph ---")
+    print("Original number of Airports:", str(air1Before), "and Routes:",
+          str(edge1Before))
+    print("")
+    print("+++ Removing airport with IATA:", str(iata), "+++")
+    print("")
+    print("--- Airports-Routes DiGraph ---")
+    print("Resulting number of Airports:", str(air2After), "and Routes:",
+          str(edge2After))
+    print("--- Airports-Routes bothWayGraph ---")
+    print("Resulting number of Airports:", str(air1After), "and Routes:",
+          str(edge1After))
+    print("")
+    print("There are", str(lt.size(adjacents2)), "airports affected by",
+          "the removal of", str(iata))
+    print("The first 3 and last 3 airports affected are:")
+    print(tbAir)
+
+
+def printDijkstraAirport(analyzer, path, airport1, airport2,
+                         distance):
     """
     Imprime los datos requeridos para el requerimiento 6.
     """
@@ -150,7 +258,7 @@ def printDijkstraAirport(analyzer, path, airport1, airport2,
     tbDistance.hrules = ALL
     tbStops.max_width = 40
     tbStops.hrules = ALL
-    print("\n" + "-"*23 + " Req 3. Answer " + "-"*24)
+    print("\n" + "-"*23 + " Req 6. Answer " + "-"*24)
     print("+++ The departure airport ", "is +++")
     print(tbAir1)
     print("")
@@ -162,6 +270,8 @@ def printDijkstraAirport(analyzer, path, airport1, airport2,
     print(tbDistance)
     print("- Trip Stops:")
     print(tbStops)
+
+
 # Menu de opciones
 
 def printMenu():
@@ -181,10 +291,9 @@ def printMenu():
 # Menu principal
 
 analyzer = None
-airportsFile = "Skylines/airports-utf8-large.csv"
+airportsFile = "Skylines/airports-utf8-small.csv"
 citiesFile = "Skylines/worldcities-utf8.csv"
-routesFile = "Skylines/routes-utf8-large.csv"
-
+routesFile = "Skylines/routes-utf8-small.csv"
 
 
 """
@@ -220,17 +329,35 @@ while True:
         printCargaArchivos(verticesDiGraph, routesDiGraph, verticesbwGraph,
                            routesbwGraph, verticesCityGraph, routesCityGraph,
                            numCities, airportDiGraph, airportbwGraph, lastCity)
-        
 
     elif int(inputs[0]) == 1:
-        pass
+        print("\n" + "-"*23 + " Req 1. Inputs " + "-"*24)
+        print("Most connected airports in network (TOP 5)")
+        numDiGraph = controller.totalVertices(analyzer["diGraph"])
+        print("Number of airports in network:", str(numDiGraph))
+        start_time = time.process_time()
+        #
+        interconnections = controller.interconnection(analyzer)
+        #
+        stop_time = time.process_time()
+        elapsed_time_mseg = round((stop_time - start_time), 2)
+        print("Tiempo:", elapsed_time_mseg, "seg")
+        printInterconnections(interconnections)
 
     elif int(inputs[0]) == 2:
         print("\n" + "-"*23 + " Req 2. Inputs " + "-"*24)
-        aeropuerto1 = input('Indique el aeropuerto que desea : ')
-        aeropuerto2 = input('Indique el aeropuerto que desea : ')
+        aeropuerto1 = input("Indique el codigo IATA del primer aeropuerto: ")
+        aeropuerto2 = input("Indique el codigo IATA del segundo aeropuerto: ")
+        start_time = time.process_time()
+        #
         scc = controller.findSCC(analyzer, aeropuerto1, aeropuerto2)
-        print(scc[0], scc[1])
+        conectados = scc[0]
+        relacion = scc[1]
+        #
+        stop_time = time.process_time()
+        elapsed_time_mseg = round((stop_time - start_time), 2)
+        print("Tiempo:", elapsed_time_mseg, "seg")
+        printSCC(analyzer, aeropuerto1, aeropuerto2, conectados, relacion)
 
     elif int(inputs[0]) == 3:
         print("\n" + "-"*23 + " Req 3. Inputs " + "-"*24)
@@ -323,10 +450,22 @@ while True:
         elapsed_time_mseg2 = round((stop_time2 - start_time2), 2)
         print("")
         print("Tiempo:", elapsed_time_mseg1 + elapsed_time_mseg2, "seg")
-    
 
     elif int(inputs[0]) == 5:
-        pass
+        print("\n" + "-"*23 + " Req 5. Inputs " + "-"*24)
+        iata = str(input("Indique el codigo IATA del aeropuerto a buscar: "))
+        start_time = time.process_time()
+        #
+        tpl = controller.affectedAirports(analyzer, iata)
+        airportsTpl = tpl[0]
+        edgesTpl = tpl[1]
+        adjacents2 = tpl[2]
+        #
+        stop_time = time.process_time()
+        elapsed_time_mseg = round((stop_time - start_time), 2)
+        print("Tiempo:", elapsed_time_mseg, "seg")
+        printAffectedAirports(airportsTpl, edgesTpl, adjacents2, iata,
+                              analyzer)
 
     elif int(inputs[0]) == 6:
         print("\n" + "-"*23 + " Req 6. Inputs " + "-"*24)
@@ -372,11 +511,10 @@ while True:
         #
         ciudad1 = lt.getElement(cities, int(numCiudad1))
         ciudad2 = lt.getElement(cities2, int(numCiudad2))
-        ciudad1coor = ciudad1['lat'],ciudad1['lng']
-        ciudad2coor = ciudad2['lat'],ciudad2['lng']
-        airport     = controller.nearairportapi(ciudad1coor[0],ciudad1coor[1],ciudad2coor[0],ciudad2coor[1])
-
-        tpl = controller.dijkstraAirport(analyzer, airport[0], airport[1], airport[2], airport[3])
+        c1cr = ciudad1['lat'], ciudad1['lng']
+        c2cr = ciudad2['lat'], ciudad2['lng']
+        ap = controller.nearairportapi(c1cr[0], c1cr[1], c2cr[0], c2cr[1])
+        tpl = controller.dijkstraAirport(analyzer, ap[0], ap[1], ap[2], ap[3])
         path = tpl[0]
         airport1 = tpl[1]
         airport2 = tpl[2]
@@ -386,8 +524,8 @@ while True:
         elapsed_time_mseg2 = round((stop_time2 - start_time2), 2)
         print("")
         print("Tiempo:", elapsed_time_mseg1 + elapsed_time_mseg2, "seg")
-        printDijkstraAirport(analyzer, path, airport1, airport2,  
-                          distance)
+        printDijkstraAirport(analyzer, path, airport1, airport2,
+                             distance)
 
     elif int(inputs[0]) == 7:
         pass

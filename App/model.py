@@ -24,8 +24,7 @@
  * Dario Correal - Version inicial
  """
 
-from amadeus import Client, ResponseError
-
+#from amadeus import Client, ResponseError
 import os
 import config as cf
 from DISClib.Algorithms.Graphs import scc as scc
@@ -35,6 +34,7 @@ from DISClib.Algorithms.Graphs import prim as prim
 from DISClib.ADT.graph import gr
 from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
+from DISClib.Algorithms.Sorting import mergesort as ms
 from DISClib.ADT import list as lt
 from DISClib.ADT import orderedmap as om
 from math import radians, cos, sin, asin, sqrt
@@ -74,12 +74,12 @@ def newAnalyzer():
 
     analyzer["diGraph"] = gr.newGraph(datastructure='ADJ_LIST',
                                       directed=True,
-                                      size=4000,
+                                      size=9100,
                                       comparefunction=compareAirportsIds)
 
     analyzer["bothWayGraph"] = gr.newGraph(datastructure='ADJ_LIST',
                                            directed=False,
-                                           size=3500,
+                                           size=9100,
                                            comparefunction=compareAirportsIds)
 
     analyzer["citiesGraph"] = gr.newGraph(datastructure='ADJ_LIST',
@@ -369,6 +369,26 @@ def lastCity(map):
     return tp
 
 
+def interconnection(analyzer):
+    """
+    Encuentra los aeropuertos que sirven como punto de interconexion.
+    """
+    diGraph = analyzer["diGraph"]
+    vertices = gr.vertices(diGraph)
+    ltAuxiliar = lt.newList("ARRAY_LIST")
+    for airport in lt.iterator(vertices):
+        outdegree = gr.outdegree(diGraph, airport)
+        indegree = gr.indegree(diGraph, airport)
+        if outdegree > 0 or indegree > 0:
+            connections = outdegree + indegree
+            airInfo = getAirportInfo(analyzer, airport)
+            airInfo["connections"] = connections
+            airInfo["inbound"] = indegree
+            airInfo["outbound"] = outdegree
+            lt.addLast(ltAuxiliar, airInfo)
+    return sortAirports(ltAuxiliar, lt.size(ltAuxiliar))
+
+
 def findSCC(analyzer, aeropuerto1, aeropuerto2):
     """
     Encuentra los componentes fuertemente conectados de un grafo.
@@ -422,6 +442,7 @@ def dijkstraAirport(analyzer, airport1, airport2, distance1, distance2):
     distance += d2
     return path, airport1, airport2, distance
 
+
 def getAirportInfo(analyzer, iata):
     """
     Obtiene la informacion del aeropuerto.
@@ -467,17 +488,44 @@ def travelerMST(analyzer, ciudad1M, millas):
             stop = stack.pop(mst)
             print(stop)
 
-def nearairportapi(lat1,lng1,lat2,lng2):
+
+def affectedAirports(analyzer, airport):
+    """
+    Identifica cuales serian los aeropuertos que afectados si uno sale
+    del funcionamiento.
+    """
+    bothWayGraph = analyzer["bothWayGraph"]
+    diGraph = analyzer["diGraph"]
+    air1Before = totalVertices(bothWayGraph)
+    air2Before = totalVertices(diGraph)
+    air1After = air1Before - 1
+    air2After = air2Before - 1
+    edge1Before = totalRoutes(bothWayGraph)
+    edge2Before = totalRoutes(diGraph)
+    adjacents1 = gr.adjacents(bothWayGraph, airport)
+    adjacents2 = gr.adjacents(diGraph, airport)
+    edge1After = edge1Before - lt.size(adjacents1)
+    edge2After = edge2Before - lt.size(adjacents2)
+    airportsTpl = air1Before, air1After, air2Before, air2After
+    edgesTpl = edge1Before, edge1After, edge2Before, edge2After
+    return airportsTpl, edgesTpl, adjacents2
+
+
+def nearairportapi(lat1, lng1, lat2, lng2):
     amadeus = Client(
-        client_id= os.getenv('AMADEUS_CLIENT_ID'),
+        client_id=os.getenv('AMADEUS_CLIENT_ID'),
         client_secret=os.getenv('AMADEUS_CLIENT_SECRET')
     )
     try:
         '''
         What relevant airports are there around a specific location?
         '''
-        response1 = amadeus.reference_data.locations.airports.get(longitude=float(lng1), latitude=float(lat1))
-        response2 = amadeus.reference_data.locations.airports.get(longitude=float(lng2), latitude=float(lat2))
+        l1 = float(lng1)
+        la1 = float(lat1)
+        l2 = float(lng2)
+        la2 = float(lat2)
+        response1 = amadeus.reference_data.locations.airports.get(l1, la1)
+        response2 = amadeus.reference_data.locations.airports.get(l2, la2)
         data1 = response1.data
         data2 = response2.data
         distancia1 = data1[0]['distance']
@@ -486,12 +534,9 @@ def nearairportapi(lat1,lng1,lat2,lng2):
         d2 = float(distancia2['value'])
         airport1 = data1[0]['iataCode']
         airport2 = data2[0]['iataCode']
-        return airport1,airport2,d1,d2
-
+        return airport1, airport2, d1, d2
     except ResponseError as error:
         raise error
-
-    
 
 
 # Funciones de comparacion
@@ -572,3 +617,23 @@ def compareLatitude(lat1, lat2):
         return 1
     else:
         return -1
+
+
+def cmpAirportByCon(air1, air2):
+    """
+    Devuelve verdadero (True) si el numero de conexiones de air1 es mayor
+    que el de air2.
+    """
+    return air1["connections"] > air2["connections"]
+
+
+# Funciones de ordenamiento
+
+def sortAirports(airports, sizeAirports):
+    """
+    Ordena los aeropuertos por numero de conexiones.
+    """
+    sub_list = lt.subList(airports, 1, sizeAirports)
+    sub_list = sub_list.copy()
+    sorted_list = ms.sort(sub_list, cmpAirportByCon)
+    return sorted_list
