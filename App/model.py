@@ -24,7 +24,9 @@
  * Dario Correal - Version inicial
  """
 
+from amadeus import Client, ResponseError
 
+import os
 import config as cf
 from DISClib.Algorithms.Graphs import scc as scc
 from DISClib.Algorithms.Graphs import dijsktra as djk
@@ -406,6 +408,20 @@ def dijkstraCity(analyzer, ciudad1, ciudad2):
     return path, airport1, airport2, distance
 
 
+def dijkstraAirport(analyzer, airport1, airport2, distance1, distance2):
+    """
+    Encuentra la ruta minima en distancia para viajar entre dos ciudades, por
+    medio del algoritmo de Dijkstra.
+    """
+    search = djk.Dijkstra(analyzer["diGraph"], airport1)
+    path = djk.pathTo(search, airport2)
+    distance = 0
+    d1 = distance1
+    d2 = distance2
+    distance += d1
+    distance += d2
+    return path, airport1, airport2, distance
+
 def getAirportInfo(analyzer, iata):
     """
     Obtiene la informacion del aeropuerto.
@@ -450,6 +466,32 @@ def travelerMST(analyzer, ciudad1M, millas):
         while (not stack.isEmpty(mst)):
             stop = stack.pop(mst)
             print(stop)
+
+def nearairportapi(lat1,lng1,lat2,lng2):
+    amadeus = Client(
+        client_id= os.getenv('AMADEUS_CLIENT_ID'),
+        client_secret=os.getenv('AMADEUS_CLIENT_SECRET')
+    )
+    try:
+        '''
+        What relevant airports are there around a specific location?
+        '''
+        response1 = amadeus.reference_data.locations.airports.get(longitude=float(lng1), latitude=float(lat1))
+        response2 = amadeus.reference_data.locations.airports.get(longitude=float(lng2), latitude=float(lat2))
+        data1 = response1.data
+        data2 = response2.data
+        distancia1 = data1[0]['distance']
+        d1 = float(distancia1['value'])
+        distancia2 = data2[0]['distance']
+        d2 = float(distancia2['value'])
+        airport1 = data1[0]['iataCode']
+        airport2 = data2[0]['iataCode']
+        return airport1,airport2,d1,d2
+
+    except ResponseError as error:
+        raise error
+
+    
 
 
 # Funciones de comparacion

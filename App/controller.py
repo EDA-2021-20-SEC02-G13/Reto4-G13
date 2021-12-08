@@ -139,3 +139,12 @@ def travelerMST(analyzer, ciudad1M, millas):
     cantidad de ciudades posibles en un unico viaje.
     """
     return model.travelerMST(analyzer, ciudad1M, millas)
+
+def dijkstraAirport(analyzer, airport1, airport2, distance1, distance2):
+
+    return model.dijkstraAirport(analyzer, airport1, airport2, distance1, distance2)
+
+
+def nearairportapi(lat1,lng1,lat2,lng2):
+
+    return model.nearairportapi(lat1,lng1,lat2,lng2)
