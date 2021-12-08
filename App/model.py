@@ -29,7 +29,7 @@ import os
 import config as cf
 from DISClib.Algorithms.Graphs import scc as scc
 from DISClib.Algorithms.Graphs import dijsktra as djk
-from DISClib.ADT import stack
+from DISClib.Algorithms.Graphs import dfs as dfs
 from DISClib.Algorithms.Graphs import prim as prim
 from DISClib.ADT.graph import gr
 from DISClib.ADT import map as mp
@@ -460,33 +460,48 @@ def travelerMST(analyzer, ciudad1M, millas):
     citiesGraph = analyzer["citiesGraph"]
     bothWayGraph = analyzer["bothWayGraph"]
     adjacents = gr.adjacents(citiesGraph, ciudad1M)
-    airport = lt.getElement(adjacents, 1)
+    iata = lt.getElement(adjacents, 1)
     search = prim.PrimMST(bothWayGraph)
-    total = prim.weightMST(bothWayGraph, search)
-    mst = search["mst"]
-    edgeTo = search["edgeTo"]
-    entry = mp.get(edgeTo, airport)
-    edge1 = me.getValue(entry)
-    ltA = lt.newList("SINGLE_LINKED")
-    lt.addLast(ltA, edge1)
-    i = 0
-    while i < mp.size(edgeTo):
-        vertexA = edge1["vertexA"]
-        entry = mp.get(edgeTo, vertexA)
-        if entry is None:
-            break
-        else:
-            edge1 = me.getValue(entry)
-            lt.addFirst(ltA, edge1)
-        i += 1
-
-    print(ltA)
-    print(total)
-
-    if mst is not None:
-        while (not stack.isEmpty(mst)):
-            stop = stack.pop(mst)
-            print(stop)
+    total = round(prim.weightMST(bothWayGraph, search), 3)
+    recorrido = dfs.DepthFirstSearch(bothWayGraph, iata)
+    mayor = 0
+    ruta = ""
+    for vertex in lt.iterator(mp.keySet(recorrido["visited"])):
+        pila = dfs.pathTo(recorrido, vertex)
+        size = lt.size(pila)
+        if size > mayor:
+            mayor = size
+            ruta = pila
+    mapEdges = search["edgeTo"]
+    ltAu = lt.newList("ARRAY_LIST")
+    total_ruta = 0
+    for airport in lt.iterator(ruta):
+        entry = mp.get(mapEdges, airport)
+        if entry is not None:
+            nodo = me.getValue(entry)
+            total_ruta += nodo["weight"]
+            lt.addLast(ltAu, nodo)
+    m_km = round(float(millas) * 1.6, 3)
+    total_ruta = round(total_ruta, 3)
+    km_falta = total_ruta - m_km
+    millas_falta = round(km_falta/1.6, 3)
+    mpAu = mp.newMap(4000,
+                     maptype="PROBING",
+                     loadfactor=0.5,
+                     comparefunction=compareAirports)
+    aeropuertos = 0
+    for nodo in lt.iterator(search["mst"]):
+        vertexA = nodo["vertexA"]
+        vertexB = nodo["vertexB"]
+        entry1 = mp.get(mpAu, vertexA)
+        entry2 = mp.get(mpAu, vertexB)
+        if entry1 is None:
+            aeropuertos += 1
+            mp.put(mpAu, vertexA, vertexA)
+        if entry2 is None:
+            aeropuertos += 1
+            mp.put(mpAu, vertexB, vertexB)
+    return aeropuertos, total, total_ruta, ltAu, millas_falta, iata, m_km
 
 
 def affectedAirports(analyzer, airport):
@@ -516,27 +531,24 @@ def nearairportapi(lat1, lng1, lat2, lng2):
         client_id=os.getenv('AMADEUS_CLIENT_ID'),
         client_secret=os.getenv('AMADEUS_CLIENT_SECRET')
     )
-    try:
-        '''
-        What relevant airports are there around a specific location?
-        '''
-        l1 = float(lng1)
-        la1 = float(lat1)
-        l2 = float(lng2)
-        la2 = float(lat2)
-        response1 = amadeus.reference_data.locations.airports.get(l1, la1)
-        response2 = amadeus.reference_data.locations.airports.get(l2, la2)
-        data1 = response1.data
-        data2 = response2.data
-        distancia1 = data1[0]['distance']
-        d1 = float(distancia1['value'])
-        distancia2 = data2[0]['distance']
-        d2 = float(distancia2['value'])
-        airport1 = data1[0]['iataCode']
-        airport2 = data2[0]['iataCode']
-        return airport1, airport2, d1, d2
-    except ResponseError as error:
-        raise error
+    '''
+    What relevant airports are there around a specific location?
+    '''
+    l1 = float(lng1)
+    la1 = float(lat1)
+    l2 = float(lng2)
+    la2 = float(lat2)
+    response1 = amadeus.reference_data.locations.airports.get(l1, la1)
+    response2 = amadeus.reference_data.locations.airports.get(l2, la2)
+    data1 = response1.data
+    data2 = response2.data
+    distancia1 = data1[0]['distance']
+    d1 = float(distancia1['value'])
+    distancia2 = data2[0]['distance']
+    d2 = float(distancia2['value'])
+    airport1 = data1[0]['iataCode']
+    airport2 = data2[0]['iataCode']
+    return airport1, airport2, d1, d2
 
 
 # Funciones de comparacion

@@ -164,6 +164,48 @@ def printDijkstraCity(analyzer, path, airport1, airport2, city1, city2,
     print(tbStops)
 
 
+def printTraveler(aeropuertos, total, total_ruta, ltAu, millas_falta, iata,
+                  m_km):
+    """
+    Imprime los datos requeridos para el requerimiento 4.
+    """
+    p1 = controller.getAirportInfo(analyzer, iata)
+    tbp1 = PrettyTable(["IATA", "Name", "City", "Country"])
+    tbp1.add_row([p1["IATA"], p1["Name"], p1["City"], p1["Country"]])
+    tbp1.max_width = 40
+    tbp1.hrules = ALL
+    tbPath = PrettyTable(["Departure", "Destination", "distance_km"])
+    nodo1 = lt.getElement(ltAu, 1)
+    verticeA = nodo1["vertexA"]
+    if verticeA == iata:
+        for nodo in lt.iterator(ltAu):
+            tbPath.add_row([nodo["vertexA"], nodo["vertexB"], nodo["weight"]])
+    else:
+        for nodo in lt.iterator(ltAu):
+            tbPath.add_row([nodo["vertexB"], nodo["vertexA"], nodo["weight"]])
+    tbPath.max_width = 40
+    tbPath.hrules = ALL
+    print("\n" + "-"*23 + " Req 4. Answer " + "-"*24)
+    print("+++ Departure airport for IATA code:", str(iata), "+++")
+    print(tbp1)
+    print("")
+    print("- Number of possible airports:", str(aeropuertos))
+    print("- Traveling distance sum between airports:", str(total), "(km).")
+    print("- Passenger available travelling miles:", str(m_km), "(km).")
+    print("")
+    print("+++ Longest possible route with airport", str(iata), "+++")
+    print("- Longest possible path distance:", str(total_ruta), "(km).")
+    print("- Longest possible path details:")
+    print(tbPath)
+    print("---")
+    if millas_falta >= 0:
+        print("The passanger needs", str(millas_falta), "miles to complete",
+              "the trip.")
+    else:
+        print("The passanger has", str(abs(millas_falta)), "left to use.")
+    print("---")
+
+
 def printAffectedAirports(airportsTpl, edgesTpl, adjacents2, iata, analyzer):
     """
     Imprime los datos requeridos para el requerimiento 5.
@@ -443,13 +485,15 @@ while True:
         start_time2 = time.process_time()
         #
         ciudad1M = lt.getElement(citiesM, int(numCiudad1M))
-        controller.travelerMST(analyzer, ciudad1M["id"], millas)
-
+        tpl = controller.travelerMST(analyzer, ciudad1M["id"], millas)
+        aeropuertos, total, total_ruta, ltAu, millas_falta, iata, m_km = tpl
         #
         stop_time2 = time.process_time()
         elapsed_time_mseg2 = round((stop_time2 - start_time2), 2)
         print("")
         print("Tiempo:", elapsed_time_mseg1 + elapsed_time_mseg2, "seg")
+        printTraveler(aeropuertos, total, total_ruta, ltAu, millas_falta, iata,
+                      m_km)
 
     elif int(inputs[0]) == 5:
         print("\n" + "-"*23 + " Req 5. Inputs " + "-"*24)
