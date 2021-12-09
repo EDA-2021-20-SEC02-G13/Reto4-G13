@@ -130,8 +130,14 @@ def printDijkstraCity(analyzer, path, airport1, airport2, city1, city2,
     """
     Imprime los datos requeridos para el requerimiento 3.
     """
+    Lista_Latitudes  = lt.newList('ARRAY_LIST')
+    Lista_Longitudes = lt.newList('ARRAY_LIST')
     a1 = controller.getAirportInfo(analyzer, airport1)
     a2 = controller.getAirportInfo(analyzer, airport2)
+    lt.addLast(Lista_Latitudes,a1['Latitude'])
+    lt.addLast(Lista_Longitudes,a1['Longitude'])
+    lt.addLast(Lista_Latitudes,a2['Latitude'])
+    lt.addLast(Lista_Longitudes,a2['Longitude'])
     tbAir1 = PrettyTable(["IATA", "Name", "City", "Country"])
     tbAir1.add_row([a1["IATA"], a1["Name"], a1["City"], a1["Country"]])
     tbAir1.max_width = 40
@@ -147,6 +153,12 @@ def printDijkstraCity(analyzer, path, airport1, airport2, city1, city2,
         while (not stack.isEmpty(path)):
             stop = stack.pop(path)
             distance += stop["weight"]
+            l = controller.getAirportInfo(analyzer, stop['vertexA'])
+            a = controller.getAirportInfo(analyzer, stop['vertexB'])
+            lt.addLast(Lista_Latitudes,l['Latitude'])
+            lt.addLast(Lista_Longitudes,l['Longitude'])
+            lt.addLast(Lista_Latitudes,a['Latitude'])
+            lt.addLast(Lista_Longitudes,a['Longitude'])
             tbDistance.add_row([stop["vertexA"], stop["vertexB"],
                                 stop["weight"]])
             dictAuxiliar[stop["vertexA"]] = 1
@@ -161,6 +173,13 @@ def printDijkstraCity(analyzer, path, airport1, airport2, city1, city2,
     tbDistance.hrules = ALL
     tbStops.max_width = 40
     tbStops.hrules = ALL
+    coordinates = lt.newList('ARRAY_LIST')
+    for pos in range(1,lt.size(Lista_Longitudes)+1):
+        lt.addLast(coordinates,[float(lt.getElement(Lista_Latitudes,pos)),float(lt.getElement(Lista_Longitudes,pos))])
+    m = folium.Map(location=[0,0], zoom_start=4)
+    my_PolyLine=folium.PolyLine(locations=coordinates['elements'],weight=5)
+    m.add_child(my_PolyLine)
+    m.save('line_example_newer.html')
     print("\n" + "-"*23 + " Req 3. Answer " + "-"*24)
     print("+++ The departure airport in", str(city1), "is +++")
     print(tbAir1)
