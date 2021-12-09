@@ -24,7 +24,7 @@
  * Dario Correal - Version inicial
  """
 
-#from amadeus import Client, ResponseError
+from amadeus import Client, ResponseError
 import os
 import config as cf
 from DISClib.Algorithms.Graphs import scc as scc
@@ -538,8 +538,8 @@ def nearairportapi(lat1, lng1, lat2, lng2):
     la1 = float(lat1)
     l2 = float(lng2)
     la2 = float(lat2)
-    response1 = amadeus.reference_data.locations.airports.get(l1, la1)
-    response2 = amadeus.reference_data.locations.airports.get(l2, la2)
+    response1 = amadeus.reference_data.locations.airports.get(longitude = l1, latitude = la1)
+    response2 = amadeus.reference_data.locations.airports.get(longitude = l2, latitude = la2)
     data1 = response1.data
     data2 = response2.data
     distancia1 = data1[0]['distance']

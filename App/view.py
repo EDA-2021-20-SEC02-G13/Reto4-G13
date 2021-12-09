@@ -333,9 +333,9 @@ def printMenu():
 # Menu principal
 
 analyzer = None
-airportsFile = "Skylines/airports-utf8-small.csv"
+airportsFile = "Skylines/airports-utf8-large.csv"
 citiesFile = "Skylines/worldcities-utf8.csv"
-routesFile = "Skylines/routes-utf8-small.csv"
+routesFile = "Skylines/routes-utf8-large.csv"
 
 
 """
