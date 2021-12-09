@@ -26,6 +26,7 @@
 
 from amadeus import Client, ResponseError
 import os
+import folium
 import config as cf
 from DISClib.Algorithms.Graphs import scc as scc
 from DISClib.Algorithms.Graphs import dijsktra as djk
@@ -386,6 +387,7 @@ def interconnection(analyzer):
             airInfo["inbound"] = indegree
             airInfo["outbound"] = outdegree
             lt.addLast(ltAuxiliar, airInfo)
+    
     return sortAirports(ltAuxiliar, lt.size(ltAuxiliar))
 
 
@@ -395,7 +397,7 @@ def findSCC(analyzer, aeropuerto1, aeropuerto2):
     """
     scccluster = scc.KosarajuSCC(analyzer["diGraph"])
     relacion = scc.stronglyConnected(scccluster, aeropuerto1, aeropuerto2)
-    conectados = scccluster['components']
+    conectados = scccluster['components']   
     return conectados, relacion
 
 
@@ -549,7 +551,6 @@ def nearairportapi(lat1, lng1, lat2, lng2):
     airport1 = data1[0]['iataCode']
     airport2 = data2[0]['iataCode']
     return airport1, airport2, d1, d2
-
 
 # Funciones de comparacion
 

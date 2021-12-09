@@ -21,6 +21,7 @@
  """
 
 import config as cf
+import folium
 import sys
 import controller
 from prettytable import PrettyTable, ALL
@@ -72,15 +73,25 @@ def printInterconnections(interconnections):
     tbCon = PrettyTable(["Name", "City", "Country", "IATA", "connections",
                          "inbound", "outbound"])
     total = lt.size(interconnections)
+    mapa = folium.Map(location=[0, 0], zoom_start=1)
     if total != 0:
         u = 1
         for pos in range(1, 6):
             ap = lt.getElement(interconnections, pos)
+            moreInfo =('El aeropuerto es ' + str(ap["Name"])+ ' con codigo IATA' + str(ap["IATA"]))
+            iframe = folium.IFrame(moreInfo)
+            popup = folium.Popup(iframe, min_width=250, max_width=250)
+            ic = 'info-sign'
+            cl = 'purple'
+            (folium.Marker([float(ap['Latitude']), float(ap['Longitude'])], popup=popup,
+            tooltip="<strong>"+'Tiene tantas conexiones '+ str(ap['connections'])+"<strong>",
+            icon=folium.Icon(icon=ic, color=cl))).add_to(mapa)
             tbCon.add_row([ap["Name"], ap["City"], ap["Country"], ap["IATA"],
                           ap["connections"], ap["inbound"], ap["outbound"]])
             u += 1
             if u > total:
                 break
+    mapa.save('map.html')
     tbCon.max_width = 40
     tbCon.hrules = ALL
     print("\n" + "-"*23 + " Req 1. Answer " + "-"*24)
@@ -333,9 +344,9 @@ def printMenu():
 # Menu principal
 
 analyzer = None
-airportsFile = "Skylines/airports-utf8-large.csv"
+airportsFile = "Skylines/airports-utf8-small.csv"
 citiesFile = "Skylines/worldcities-utf8.csv"
-routesFile = "Skylines/routes-utf8-large.csv"
+routesFile = "Skylines/routes-utf8-small.csv"
 
 
 """
